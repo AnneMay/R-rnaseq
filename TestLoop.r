@@ -15,8 +15,8 @@ testDF <- rename(testDF, "genesymbol" = rowname)
 FC <- as.vector(as.matrix(testDF[,c("FC1", "FC2")]))
 FCpos <- FC[FC > 0]
 FCneg <- FC[FC < 0]
-q2pos = quantile(FCpos, 0.05)
-q3neg = quantile(FCneg, 0.95)
+#q2pos = quantile(FCpos, 0.05)
+#q3neg = quantile(FCneg, 0.95)
 resume <- summarise(testDF, avg = mean(cbind(testDF$FC1, testDF$FC2)), med_FC = median(cbind(testDF$FC1, testDF$FC2)),
                     min_FC = min(cbind(testDF$FC1, testDF$FC2)), max_FC = max(cbind(testDF$FC1, testDF$FC2)))
 
@@ -34,3 +34,4 @@ for(i in 1:nrow(testDF)){
     listA <- c(listA, testDF$genesymbol[i])
   } else {listB <- c(listB, testDF$genesymbol[i])}
 }
+#Étape 5: Retransformer les listes A et B en DF avec les informations de Deseq WT-Mut seulement
