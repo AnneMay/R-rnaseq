@@ -58,6 +58,13 @@ for(i in 1:nrow(intersect.r)){
 #     listA <- c(listA, intersect.r$gene_name[i])
 #   } else {listC <- c(listC, intersect.r$gene_name[i])}
 # }
+listD <- list()
+for(i in 1:nrow(intersect.r)){
+  if ((as.numeric(intersect.r$FC1[i]) >= FCthresholdneg & as.numeric(intersect.r$FC2[i]) >= FCthresholdneg) ||
+      (as.numeric(intersect.r$FC1[i]) <= FCthresholdpos & as.numeric(intersect.r$FC2[i]) <= FCthresholdpos)) {
+    listA <- c(listA, intersect.r$gene_name[i])
+  } else {listD <- c(listD, intersect.r$gene_name[i])}
+}
 #étape 5: réassocier les gènes avec leur valeur de FC (WT-mut) (si ça c'est perdu)
 #(liste WT-mut-corrigee partie B: corrB)
 
