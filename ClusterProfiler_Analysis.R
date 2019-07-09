@@ -9,10 +9,12 @@ library(clusterProfiler)
 library("DOSE")
 library("pathview")
 
+args <- commandArgs(TRUE)
+args[1] = 'WT_mut_p0.1_'
 
 #Read deseq2 data
 # deseqRes <- read.table("N91.deseq2.tsv",sep="\t",header=T,quote="")
-deseqRes <- as.data.frame(WT_vecteur)
+deseqRes <- as.data.frame(WT_mut)
 deseqRes$gene_name <- as.character(deseqRes$gene_name)
 deseqRes <- deseqRes[grep("ENSG",deseqRes$gene_name),]
 
@@ -26,8 +28,8 @@ names(DEgenes) <- deseqResFil[deseqResFil$padj<0.05,1]
 DEgenes <- DEgenes[order(-DEgenes)]
 
 #stat
-DEgenesStat <- deseqResFil[deseqResFil$padj<0.05 & abs(deseqResFil$log2FoldChange)>1 ,"stat"]
-names(DEgenesStat) <- deseqResFil[deseqResFil$padj<0.05 & abs(deseqResFil$log2FoldChange)>1,1]
+DEgenesStat <- deseqResFil[deseqResFil$padj<0.05,"stat"]
+names(DEgenesStat) <- deseqResFil[deseqResFil$padj<0.05,1]
 DEgenesStat <- DEgenesStat[order(-DEgenesStat)]
 
 
@@ -92,30 +94,30 @@ ego2Stat <- enrichGO(gene         = names(DEgenesStat),
                  keyType       = 'ENSEMBL',
                  ont           = "BP",
                  pAdjustMethod = "BH",
-                 pvalueCutoff  = 0.01,
+                 pvalueCutoff  = 0.1,
                  qvalueCutoff  = 0.05)
 
 
 #Run gene set enrichment analysis for GO stat
-ego4Stat <- gseGO(geneList     = DEgenesEntrezStat,
-              OrgDb        = org.Hs.eg.db,
-              ont          = "BP",
-              nPerm        = 1000,
-              minGSSize    = 15,
-              maxGSSize    = 500,
-              pvalueCutoff = 0.05,
-              verbose      = FALSE,
-              seed         = 223456)
+# ego4Stat <- gseGO(geneList     = DEgenesEntrezStat,
+#               OrgDb        = org.Hs.eg.db,
+#               ont          = "BP",
+#               nPerm        = 1000,
+#               minGSSize    = 15,
+#               maxGSSize    = 500,
+#               pvalueCutoff = 0.05,
+#               verbose      = FALSE,
+#               seed         = 223456)
 
 ####GMTs for other pathways
 
 #Read GMT
 #  hallm <- read.gmt("h.all.v6.2.entrez.gmt")
 #  c6 <- read.gmt("c6.all.v6.2.entrez.gmt")
-
+# 
 #Run GSEA on GMTs
-#hallGseaStat <- GSEA(DEgenesEntrezStat, 
-#                 TERM2GENE=hallm, 
+# hallGseaStat <- GSEA(DEgenesEntrezStat,
+#                 TERM2GENE=hallm,
 #                 minGSSize = 10,
 #                 maxGSSize = 500,
 #                 pvalueCutoff = 0.05,
@@ -135,22 +137,23 @@ ego4Stat <- gseGO(geneList     = DEgenesEntrezStat,
 
 
 
-#Write GSEA results to file
-egoxStat <- setReadable(ego4Stat, 'org.Hs.eg.db', 'auto')
+#Write GSEA (4) ou enrichGO (2) results to file
+egoxStat <- setReadable(ego2Stat, 'org.Hs.eg.db', 'auto')
 #hallGseaStat <- setReadable(hallGseaStat, 'org.Hs.eg.db', 'ENTREZID')
 #c6GseaStat <- setReadable(c6GseaStat, 'org.Hs.eg.db', 'ENTREZID')
-write.csv(egoxStat,file="GO_GSEA_Stat.csv")
+# write.csv(egoxStat,file=paste(args[1],"GO_GSEA_Stat.csv",sep=""))
+write.csv(egoxStat,file=paste(args[1],"enrich_GO_Stat.csv",sep=""))
 #write.csv(hallGseaStat,file="hall_GSEA_Stat.csv")
 #write.csv(c6GseaStat,file="c6_GSEA_Stat.csv")
 
 
 #Write GSEA plots to pdf
-pdf(file="GSEA_GO_BP_Stat_analysis.pdf",onefile = TRUE,width = 18,height=8)
-dp5 <- dotplot(ego4Stat, showCategory=30) + ggtitle("dotplot for GO")
+pdf(file=paste(args[1],"enrich_GO_BP_Stat_analysis.pdf",sep=""),onefile = TRUE,width = 18,height=8)
+dp5 <- dotplot(ego2Stat, showCategory=30) + ggtitle("dotplot for GO")
 #p2<-barplot(ego4P, showCategory=30)
 p3<-cnetplot(egoxStat, foldChange=DEgenesSymbolLfc)
 p4<-heatplot(egoxStat, foldChange=DEgenesSymbolLfc)
-p5<-emapplot(ego4Stat)
+p5<-emapplot(ego2Stat)
 print(dp5)
 #print(p2)
 print(p3)
@@ -198,7 +201,7 @@ kk <- gseKEGG(geneList     = DEgenesEntrezStat,
         verbose      = FALSE)
 
 kpath <- head(kk)[[1]][[1]]
-write.csv(as.data.frame(kk),file=paste(currexp,".KEGG_OverRepresentationAnalysis.csv",sep=""))
+write.csv(as.data.frame(kk),file=paste(args[1],".KEGG_OverRepresentationAnalysis.csv",sep=""))
 for(i in as.data.frame(kk)[[1]]){
   
   pv <- pathview(gene.data  = DEgenesEntrez, pathway.id = i, species    = "hsa", limit      = list(gene=max(abs(DEgenesEntrez)), cpd=1),out.suffix="KEGG_pathview")

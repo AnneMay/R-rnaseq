@@ -112,3 +112,7 @@ listDc <- listD %>% rename("gene_name" = V1) %>% rownames_to_column() %>% select
   mutate("gene_name" = as.character("gene_name"))
 corrD <- listDc %>% left_join(WT_mut, by = "gene_name")
 WT_mut_test <- bind_rows(test, corrD, ID = names("source"))
+
+write.table(WT_mut_corr,"20190709_WT_mut_corr.tsv", quote=F, row.names=F,sep="\t")
+write.table(WT_mut,"20190709_WT_mut.tsv", quote=F, row.names=F,sep="\t")
+write.table(WT_vecteur,"20190709_WT_vecteur.tsv", quote=F, row.names=F,sep="\t")
