@@ -22,6 +22,7 @@ design <- read_delim("~/R/PCA-cells/mut-vs-scramble.design.txt",
 
 #Manque l'étape de retrait des ID gène non désiré, il me manque un fichier 
 
+
 design$group=as.factor(design$group)
 #Transform la 1ere colonne en nom de lignes
 jdt.df <- data %>% remove_rownames %>% column_to_rownames(var="X1")
@@ -59,3 +60,27 @@ for (i in c(1:nrow(go))){
   }
 }
 
+final=merge(sym_names,go_data,all=T)
+final=merge(d3,final,by.x=1,by.y=1)
+final=subset(final, !duplicated(final$gene_name))
+# final=d3
+final=final[ order(final$padj), ]
+final$baseMean=round(final$baseMean,3)
+final$log2FoldChange=round(final$log2FoldChange,3)
+final$lfcSE=round(final$lfcSE,3)
+final$stat=round(final$stat,3)
+
+write.table(final,"mut-lenti.deseq2.tsv", quote=F, row.names=F,sep="\t")
+rld <- rlog(dds)
+hmcol <- colorRampPalette(brewer.pal(9, "GnBu"))(100)
+distsRL <- dist(t(assay(rld)))
+mat <- as.matrix(distsRL)
+rownames(mat) <- colnames(mat)
+hc <- hclust(distsRL)
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+
+
+pdf("RNASeq_Clustering_mut-lenti_June_2017.pdf")
+heatmap.2(mat, Rowv=as.dendrogram(hc),symm=TRUE, trace="none",col = rev(hmcol), margin=c(13, 13), cexRow = 0.7, cexCol = 0.7)
+plotPCA(rld, intgroup=c("group"))
+dev.off()
